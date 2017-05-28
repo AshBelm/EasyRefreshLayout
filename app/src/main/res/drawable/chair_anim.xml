@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/chair_black_1" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_2" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_3" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_4" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_5" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_6" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_7" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_8" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_9" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_10" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_11" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_12" android:duration="100"/>
+    <item android:drawable="@drawable/chair_black_13" android:duration="100"/>
+</animation-list>

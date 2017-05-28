@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#ffffff">
+<com.mcmo.easyrefreshlayout.ChairImageView
+    android:id="@+id/civ"
+    android:layout_width="25dp"
+    android:layout_height="35dp"
+    android:layout_marginTop="15dp"
+    android:layout_marginBottom="15dp"
+    android:src="@drawable/chair_white"
+    android:layout_gravity="center">
+
+</com.mcmo.easyrefreshlayout.ChairImageView>
+</FrameLayout>
