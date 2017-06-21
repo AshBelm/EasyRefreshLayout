@@ -9,7 +9,7 @@ import android.view.View;
 
 public interface IRefreshView {
     public View getView(Context context);
-    public void scroll(int totalScrollY,int viewHeight,int viewScrollY,int springHeight,int springScrollY);
+    public void scroll(int totalScrollY,int activateDistance,int viewHeight,int viewScrollY,int springHeight,int springScrollY);
     public void onRefreshStart();
     public void onRefreshEnd();
     public void onConfirmRefresh();

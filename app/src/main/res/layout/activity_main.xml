@@ -4,7 +4,10 @@
     android:id="@+id/easyLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:footer="@layout/footer"
+    app:headSpring="100dp"
+    app:footSpring="50dp"
+    app:headActivateDistance="100dp"
+    app:footActivateDistance="100dp"
     android:background="#ffffff"
     >
     <android.support.v7.widget.RecyclerView

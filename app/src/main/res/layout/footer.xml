@@ -17,7 +17,7 @@
         android:id="@+id/checkedTextView" />
 
     <TextView
-        android:text="TextView"
+        android:text="tv_foot"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textView2" />

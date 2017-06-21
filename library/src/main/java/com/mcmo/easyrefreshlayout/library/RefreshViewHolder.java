@@ -14,8 +14,9 @@ public class RefreshViewHolder {
     private EasyRefreshLayout mRefreshLayout;
     protected FrameLayout layout;
     protected boolean isFloat;//是否悬浮显示
-    protected int height;
-    protected int maxSpringDistance=100;//最大可回弹距离
+    protected int height=0;
+    protected int maxSpringDistance=0;//最大可回弹距离
+    protected int activateDistance=0;//激活刷新的距离 ，>=height && <=height+maxSpringDistance
     protected SpringDock springDock=SpringDock.BEFORE;//refresh在有回弹是显示的位置
     protected boolean isRefreshing;
     protected IRefreshView iRefresh;
@@ -53,6 +54,12 @@ public class RefreshViewHolder {
         if(!isEmpty()){
             layout.measure(widthMeasureSpec, heightMeasureSpec);
             height = layout.getMeasuredHeight();
+        }
+        if(activateDistance<height){
+            activateDistance = height;
+        }
+        if(activateDistance>(height+maxSpringDistance)){
+            activateDistance = height+maxSpringDistance;
         }
     }
     public int getScrollDistance(){

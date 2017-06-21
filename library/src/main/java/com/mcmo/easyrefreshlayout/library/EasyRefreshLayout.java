@@ -27,7 +27,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private final DecelerateInterpolator mDecelerateInterpolator;
     private final float DECELERATE_INTERPOLATION_FACTOR = 2f;
     private int mHandMoveY = 0;//手指实际移动的距离
-    private float mMoveFactor=2.0f;//实际移动到停止时，移动距离相对于需要移动距离的倍数
+    private float mMoveFactor = 2.0f;//实际移动到停止时，移动距离相对于需要移动距离的倍数
     private EasyRefreshListener mListener;
 
     public EasyRefreshLayout(Context context) {
@@ -55,6 +55,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             mFooter.isFloat = ta.getBoolean(R.styleable.EasyRefreshLayout_footOverlap, false);
             headerId = ta.getResourceId(R.styleable.EasyRefreshLayout_header, -1);
             footerId = ta.getResourceId(R.styleable.EasyRefreshLayout_footer, -1);
+            mHeader.maxSpringDistance = ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_headSpring, 0);
+            mFooter.maxSpringDistance = ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footSpring, 0);
+            mHeader.activateDistance = ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_headActivateDistance, 0);
+            mFooter.activateDistance = ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footActivateDistance, 0);
         }
         if (headerId != -1) {
             View headerView = LayoutInflater.from(context).inflate(headerId, null);
@@ -269,16 +273,15 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                         } else {
                             springScrollY = 0;
                         }
-                        if (mHeader.springDock == SpringDock.BEFORE) {//header锁定在最上头的效果
+                        if (!mHeader.isEmpty() && mHeader.springDock == SpringDock.BEFORE) {//header锁定在最上头的效果
                             mHeader.layout.setTranslationY(springScrollY);
                         }
                         scrollBy(0, scrollY);
                         consumed[1] = scrollY;
-                        callbackIHeader(-totalScrollY, inSpring, -viewScrollY, -springScrollY);
+                        callbackIHeader(-totalScrollY, -viewScrollY, -springScrollY);
                     }
                 }
             } else {//上拉状态中
-                boolean childCanScroll = canChildScrollDown();
                 if (mFooter.isFloat) {
 
                 } else {
@@ -293,10 +296,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                         } else {
                             springScrollY = 0;
                         }
-                        if (mFooter.springDock == SpringDock.AFTER) {
+                        if (!mFooter.isEmpty() && mFooter.springDock == SpringDock.AFTER) {
                             mFooter.layout.setTranslationY(springScrollY);
                         }
-                        callbackIFooter(totalScrollY, inSpring, viewScrollY, springScrollY);
+                        callbackIFooter(totalScrollY, viewScrollY, springScrollY);
                         scrollBy(0, scrollY);
                         consumed[1] = scrollY;
                     }
@@ -319,10 +322,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                         } else {
                             springScrollY = 0;
                         }
-                        if (mHeader.springDock == SpringDock.BEFORE) {
+                        if (!mHeader.isEmpty() && mHeader.springDock == SpringDock.BEFORE) {
                             mHeader.layout.setTranslationY(springScrollY);
                         }
-                        callbackIHeader(-totalScrollY, inSpring, -viewScrollY, -springScrollY);
+                        callbackIHeader(-totalScrollY, -viewScrollY, -springScrollY);
                         scrollBy(0, scrollY);
                         consumed[1] = scrollY;
                     }
@@ -343,10 +346,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                         } else {
                             springScrollY = 0;
                         }
-                        if (mFooter.springDock == SpringDock.AFTER) {
+                        if (!mFooter.isEmpty() && mFooter.springDock == SpringDock.AFTER) {
                             mFooter.layout.setTranslationY(springScrollY);
                         }
-                        callbackIFooter(totalScrollY, inSpring, viewScrollY, springScrollY);
+                        callbackIFooter(totalScrollY, viewScrollY, springScrollY);
                         scrollBy(0, scrollY);
                         consumed[1] = scrollY;
                     }
@@ -355,30 +358,32 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         }
     }
 
-    private void callbackIFooter(int totalScrollY, boolean inSpring, int viewScrollY, int springScrollY) {
+    private void callbackIFooter(int totalScrollY, int viewScrollY, int springScrollY) {
         if (mFooter.iRefresh != null) {
-            if (mFooter.refreshReady != inSpring) {
-                mFooter.refreshReady = inSpring;
-                if (inSpring)
+            boolean refresh = totalScrollY >= mFooter.activateDistance;
+            if (mFooter.refreshReady != refresh) {
+                mFooter.refreshReady = refresh;
+                if (refresh)
                     mFooter.iRefresh.onConfirmRefresh();
                 else
                     mFooter.iRefresh.onCancelRefresh();
             }
-            mFooter.iRefresh.scroll(totalScrollY, mFooter.height, viewScrollY, mFooter.maxSpringDistance, springScrollY);
+            mFooter.iRefresh.scroll(totalScrollY, mFooter.activateDistance, mFooter.height, viewScrollY, mFooter.maxSpringDistance, springScrollY);
         }
     }
 
-    private void callbackIHeader(int totalScrollY, boolean inSpring, int viewScrollY, int springScrollY) {
+    private void callbackIHeader(int totalScrollY, int viewScrollY, int springScrollY) {
         if (mHeader.iRefresh != null) {
-            if (mHeader.refreshReady != inSpring) {
-                mHeader.refreshReady = inSpring;
-                if (inSpring) {
+            boolean refresh = totalScrollY >= mHeader.activateDistance;
+            if (mHeader.refreshReady != refresh) {
+                mHeader.refreshReady = refresh;
+                if (refresh) {
                     mHeader.iRefresh.onConfirmRefresh();
                 } else {
                     mHeader.iRefresh.onCancelRefresh();
                 }
             }
-            mHeader.iRefresh.scroll(totalScrollY, mHeader.height, viewScrollY, mHeader.maxSpringDistance, springScrollY);
+            mHeader.iRefresh.scroll(totalScrollY, mHeader.activateDistance, mHeader.height, viewScrollY, mHeader.maxSpringDistance, springScrollY);
         }
     }
 
@@ -392,29 +397,33 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 //        super.onStopNestedScroll(child);
         int scrollY = getScrollY();
         if (scrollY > 0) {//上拉
-            if (scrollY > mFooter.height) {
-                mFooter.isRefreshing = true;
+            if (scrollY >= mFooter.activateDistance) {
                 int springScrollY = scrollY - mFooter.height;
                 startAnim(200, new RefreshAnimatorUpdateListener(), springScrollY, 0);
-                if (mFooter.iRefresh != null) {
-                    mFooter.iRefresh.onRefreshStart();
-                }
-                if (mListener != null) {
-                    mListener.onLoadMore(this);
+                if (!mFooter.isRefreshing) {
+                    mFooter.isRefreshing = true;
+                    if (mFooter.iRefresh != null) {
+                        mFooter.iRefresh.onRefreshStart();
+                    }
+                    if (mListener != null && !mFooter.isEmpty()) {
+                        mListener.onLoadMore(this);
+                    }
                 }
             } else {
                 startAnim(300, new RefreshAnimatorUpdateListener(), scrollY, 0);
             }
         } else if (scrollY < 0) {//下拉
-            if (scrollY < -mHeader.height) {
-                mHeader.isRefreshing = true;
+            if (scrollY <= -mHeader.activateDistance) {
                 int springScrollY = scrollY + mHeader.height;
                 startAnim(200, new RefreshAnimatorUpdateListener(), springScrollY, 0);
-                if (mHeader.iRefresh != null) {
-                    mHeader.iRefresh.onRefreshStart();
-                }
-                if (mListener != null) {
-                    mListener.onRefresh(this);
+                if (!mHeader.isRefreshing) {
+                    mHeader.isRefreshing = true;
+                    if (mHeader.iRefresh != null) {
+                        mHeader.iRefresh.onRefreshStart();
+                    }
+                    if (mListener != null && !mHeader.isEmpty()) {
+                        mListener.onRefresh(this);
+                    }
                 }
             } else {
                 startAnim(300, new RefreshAnimatorUpdateListener(), scrollY, 0);
