@@ -55,10 +55,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private int mActivatePointerId = INVALID_POINTER;
     private int mLastMotionY;
     private boolean mIsBeginDragged;
-//    private static final int SCROLL_TYPE_NONE = -1;
-//    private static final int SCROLL_TYPE_SPRINGBACK=1;
-//    private static final int SCROLL_TYPE_FLING = 2;
-//    private int mScrollType = SCROLL_TYPE_NONE;
+    private static final int SCROLL_TYPE_NONE = -1;
+    private static final int SCROLL_TYPE_SPRINGBACK=1;
+    private static final int SCROLL_TYPE_FLING = 2;
+    private int mScrollType = SCROLL_TYPE_NONE;
 
     public EasyRefreshLayout(Context context) {
         this(context, null);
@@ -533,7 +533,8 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         int minY = (mHeader.isRefreshing() || mHeader.isRefreshReady()) ? -mHeader.getMinDistanceInRefreshing() : 0;
         int maxY = (mFooter.isRefreshing() || mFooter.isRefreshReady()) ? getScrollRange() + mFooter.getMinDistanceInRefreshing(): getScrollRange();
         Log.e(TAG, "fling max=" + maxY);
-        mScroller.fling(getScrollX(), getScrollY(), 0, velocity, 0, 0, minY, maxY, 0, VERTICAL_OVERSCROLL_MAX);
+        mScroller.fling(getScrollX(), getScrollY(), 0, velocity, 0, 0, minY, maxY,0,VERTICAL_OVERSCROLL_MAX);
+        mScrollType = SCROLL_TYPE_FLING;
         ViewCompat.postInvalidateOnAnimation(this);
     }
 
@@ -733,7 +734,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         return getScrollContentHeight();
     }
 
-    protected boolean overScrollByCompat(int deltaX, int deltaY, int scrollX, int scrollY, int scrollRangeX, int scrollRangeY, int maxOverScrollX, int maxOverScrollY, boolean isTouchEvent) {
+    protected boolean overScrollByCompat(int deltaX, int deltaY, int scrollX, int scrollY, int scrollRangeX, int scrollRangeY, int maxOverScrollLeft,int maxOverScrollRight, int maxOverScrollTop,int maxOverScrollBottom, boolean isTouchEvent) {
         final int overScrollMode = getOverScrollMode();
         final boolean canScrollHorizontal = computeHorizontalScrollRange() > computeHorizontalScrollExtent();
         final boolean canScrollVertical = computeVerticalScrollRange() > computeVerticalScrollExtent();
@@ -741,16 +742,16 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         final boolean overScrollVertical = overScrollMode == View.OVER_SCROLL_ALWAYS || (overScrollMode == View.OVER_SCROLL_IF_CONTENT_SCROLLS && canScrollVertical);
         int newScrolledX = scrollX + deltaX;
         if (!overScrollHorizontal) {
-            maxOverScrollX = 0;
+            maxOverScrollLeft = maxOverScrollRight = 0;
         }
         int newScrolledY = scrollY + deltaY;
         if (!overScrollVertical) {
-            maxOverScrollY = 0;
+            maxOverScrollTop = maxOverScrollBottom = 0;
         }
-        final int left = -maxOverScrollX;
-        final int right = scrollRangeX + maxOverScrollX;
-        final int top = -maxOverScrollY;
-        final int bottom = scrollRangeY + maxOverScrollY;
+        final int left = -maxOverScrollLeft;
+        final int right = scrollRangeX + maxOverScrollRight;
+        final int top = -maxOverScrollTop;
+        final int bottom = scrollRangeY + maxOverScrollBottom;
         boolean clampedX = false;
         if (newScrolledX > right) {
             newScrolledX = right;
@@ -790,7 +791,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             Log.e(TAG, "computeScroll " + oldY + " " + y);
             if (oldX != x || oldY != y) {
 //                super.scrollTo(x, y);
-                overScrollByCompat(x-oldX,y-oldY,oldX,oldY,0,getScrollRange(),0,VERTICAL_OVERSCROLL_MAX,false);
+                int maxTop = (mHeader.isRefreshing()||mHeader.isRefreshReady())?mHeader.getMinDistanceInRefreshing():0;
+                int maxBottom = (mFooter.isRefreshing()||mFooter.isRefreshReady())?mFooter.getMinDistanceInRefreshing():0;
+                overScrollByCompat(x-oldX,y-oldY,oldX,oldY,0,getScrollRange(),0,0,maxTop,maxBottom,false);
                 processRefresh();
             }
         }
