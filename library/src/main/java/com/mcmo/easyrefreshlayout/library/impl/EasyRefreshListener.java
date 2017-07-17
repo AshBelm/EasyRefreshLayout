@@ -1,4 +1,4 @@
-package com.mcmo.easyrefreshlayout.library;
+package com.mcmo.easyrefreshlayout.library.impl;
 
 import android.view.View;
 

@@ -1,11 +1,13 @@
 package com.mcmo.easyrefreshlayout;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.mcmo.easyrefreshlayout.library.IRefreshView;
+import com.mcmo.easyrefreshlayout.library.entity.MotionParams;
+import com.mcmo.easyrefreshlayout.library.impl.IRefreshView;
 
 /**
  * Created by ZhangWei on 2017/5/24.
@@ -21,27 +23,29 @@ public class FooterText implements IRefreshView {
     }
 
     @Override
-    public void scroll(int totalScrollY, int actY,int viewHeight, int viewScrollY, int springHeight, int springScrollY) {
+    public void scroll(View view, MotionParams params) {
 
     }
 
     @Override
-    public void onRefreshStart() {
+    public void onRefreshingStateChanged(boolean refreshing) {
+        Log.e("refresh", "onRefreshingStateChanged: "+refreshing );
+    }
 
+
+    @Override
+    public void onInScreen() {
+        Log.e("refresh", "onInScreen: " );
     }
 
     @Override
-    public void onRefreshEnd() {
-
+    public void onOutScreen() {
+        Log.e("refresh", "onOutScreen: " );
     }
 
     @Override
-    public void onConfirmRefresh() {
-        tv.setText("加载");
+    public void onReadyStateChanged(boolean isReady) {
+
     }
 
-    @Override
-    public void onCancelRefresh() {
-        tv.setText("拉" );
-    }
 }

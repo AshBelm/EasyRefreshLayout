@@ -8,7 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import com.mcmo.easyrefreshlayout.library.IRefreshView;
+import com.mcmo.easyrefreshlayout.library.entity.MotionParams;
+import com.mcmo.easyrefreshlayout.library.impl.IRefreshView;
 
 /**
  * Created by ZhangWei on 2017/5/24.
@@ -16,8 +17,9 @@ import com.mcmo.easyrefreshlayout.library.IRefreshView;
 
 public class HeaderChair implements IRefreshView {
     private ChairImageView civ;
-    private boolean isRefresh=false;
     TextView tv;
+
+
     @Override
     public View getView(Context context) {
         View v= LayoutInflater.from(context).inflate(R.layout.header_chair,null);
@@ -27,40 +29,49 @@ public class HeaderChair implements IRefreshView {
     }
 
     @Override
-    public void scroll(int totalScrollY,int actY, int viewHeight, int viewScrollY, int springHeight, int springScrollY) {
-        if(isRefresh)
+    public void scroll(View view, MotionParams params) {
+        if(params.isRefreshing)
             return;
-        float percent=1.0f*springScrollY/(actY-viewHeight);
-        Log.e("aa", "scroll"+springScrollY+" "+viewScrollY+" "+viewHeight);
+        int spring = params.consumedDistance-params.activateDistance;
+        if(spring<0) spring=0;
+        float percent=1.0f*spring/(params.maxDistance-params.activateDistance);
+//        Log.e("aa", "scroll"+springScrollY+" "+viewScrollY+" "+viewHeight);
         civ.setPercent(percent);
     }
 
     @Override
-    public void onRefreshStart() {
-        isRefresh=true;
+    public void onRefreshingStateChanged(boolean refreshing) {
+
+    }
+
+
+    @Override
+    public void onInScreen() {
         civ.setImageResource(R.drawable.chair_anim);
         AnimationDrawable ad= (AnimationDrawable) civ.getDrawable();
         civ.setPercent(0);
         ad.start();
+        Log.e("refresh", "onInScreen header");
     }
 
     @Override
-    public void onRefreshEnd() {
-        isRefresh=false;
+    public void onOutScreen() {
         Drawable d=civ.getDrawable();
         if(d instanceof AnimationDrawable){
             ((AnimationDrawable) d).stop();
         }
         civ.setImageResource(R.drawable.chair_white);
+        Log.e("refresh", "onOutScreen header");
     }
 
     @Override
-    public void onConfirmRefresh() {
-        tv.setText("松开加载");
+    public void onReadyStateChanged(boolean isReady) {
+        if(isReady){
+            tv.setText("松开加载");
+
+        }else{
+            tv.setText("下拉刷新");
+        }
     }
 
-    @Override
-    public void onCancelRefresh() {
-        tv.setText("下拉加载");
-    }
 }

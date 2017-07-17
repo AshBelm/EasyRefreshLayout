@@ -1,4 +1,4 @@
-package com.mcmo.easyrefreshlayout.library;
+package com.mcmo.easyrefreshlayout.library.entity;
 
 /**
  * Created by ZhangWei on 2017/5/24.

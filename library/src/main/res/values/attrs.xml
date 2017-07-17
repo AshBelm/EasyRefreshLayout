@@ -5,9 +5,11 @@
         <attr name="footOverlap" format="boolean"/>
         <attr name="header" format="reference"/>
         <attr name="footer" format="reference"/>
-        <attr name="headSpring" format="dimension"/>
-        <attr name="footSpring" format="dimension"/>
+        <attr name="headMaxDistance" format="dimension"/>
+        <attr name="headMinDistance" format="dimension"/>
         <attr name="headActivateDistance" format="dimension"/>
+        <attr name="footMaxDistance" format="dimension"/>
+        <attr name="footMinDistance" format="dimension"/>
         <attr name="footActivateDistance" format="dimension"/>
     </declare-styleable>
 </resources>
