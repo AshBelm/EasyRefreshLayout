@@ -152,6 +152,18 @@ public class RefreshViewHolder {
         return refreshingMinDistance;
     }
 
+    /**
+     * 活动当前最小显示距离
+     * @return
+     */
+    public int getCurMinDistance(){
+        if(enable&&!isFloat&&isRefreshViewVisible){
+            return refreshingMinDistance;
+        }else{
+            return 0;
+        }
+    }
+
     public void setMinDistanceInRefreshing(int distance) {
         this.mMinDisInRefreshing = distance;
         measureDistance();

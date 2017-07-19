@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.mcmo.easyrefreshlayout.library.EasyRefreshLayout;
+
 public class ScrollingActivity extends AppCompatActivity {
     private RecyclerView rv;
     @Override
@@ -31,6 +33,10 @@ public class ScrollingActivity extends AppCompatActivity {
         rv = (RecyclerView) findViewById(R.id.rv);
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(new MAdapter() );
+
+        EasyRefreshLayout erlayout= (EasyRefreshLayout) findViewById(R.id.easyLayout);
+        erlayout.addHeaderView(new HeaderChair());
+        erlayout.addFooterView(new FooterText());
     }
 
     private class MAdapter extends RecyclerView.Adapter<MHolder>{
