@@ -40,27 +40,29 @@ public class HeaderChair implements IRefreshView {
     }
 
     @Override
-    public void onRefreshingStateChanged(boolean refreshing) {
-
+    public void onRefreshingStateChanged(boolean refreshing,boolean touch) {
+        if(refreshing){
+            civ.setImageResource(R.drawable.chair_anim);
+            AnimationDrawable ad= (AnimationDrawable) civ.getDrawable();
+            civ.setPercent(0);
+            ad.start();
+        }else{
+            Drawable d=civ.getDrawable();
+            if(d instanceof AnimationDrawable){
+                ((AnimationDrawable) d).stop();
+            }
+            civ.setImageResource(R.drawable.chair_white);
+        }
     }
 
 
     @Override
     public void onInScreen() {
-        civ.setImageResource(R.drawable.chair_anim);
-        AnimationDrawable ad= (AnimationDrawable) civ.getDrawable();
-        civ.setPercent(0);
-        ad.start();
         Log.e("refresh", "onInScreen header");
     }
 
     @Override
     public void onOutScreen() {
-        Drawable d=civ.getDrawable();
-        if(d instanceof AnimationDrawable){
-            ((AnimationDrawable) d).stop();
-        }
-        civ.setImageResource(R.drawable.chair_white);
         Log.e("refresh", "onOutScreen header");
     }
 

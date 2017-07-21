@@ -17,7 +17,7 @@ public interface IRefreshView {
      * 刷新的状态改变
      * @param refreshing 是否正在刷新
      */
-    public void onRefreshingStateChanged(boolean refreshing);
+    public void onRefreshingStateChanged(boolean refreshing,boolean touch);
 
     /**
      * 刷新的view刚刚可见时调用

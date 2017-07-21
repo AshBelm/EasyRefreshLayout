@@ -31,7 +31,7 @@ public class RefreshViewHolder {
     private boolean isRefreshing;
     private boolean isRefreshReady;
     private boolean isInScreen;//是否可以在view上看到,用来标识当前view的状态
-    private boolean isNeedRefresh=true;//在下拉时是否需要刷新，如果在刷新状态下拉动在本次动作中就不再需要激活刷新了
+    private boolean isNeedRefreshInCurMotion=true;//在下拉时是否需要刷新，如果在刷新状态下拉动在本次动作中就不再需要激活刷新了
 
 
     public RefreshViewHolder(EasyRefreshLayout refreshLayout) {
@@ -44,7 +44,7 @@ public class RefreshViewHolder {
      * @return 状态是否有改变
      */
     protected boolean setRefreshReady(boolean ready){
-        boolean isReady = false;
+        boolean isReady;
         if(enable&&isRefreshViewVisible&&ready){
             isReady = true;
         }else{
@@ -57,11 +57,23 @@ public class RefreshViewHolder {
             return true;
         }
     }
+
     public boolean isRefreshReady(){
         return isRefreshReady;
     }
     public boolean isRefreshing(){
         return isRefreshing;
+    }
+
+    public boolean setRefreshing(boolean refreshing) {
+        if(isRefreshing == refreshing){
+            return false;
+        }else{
+            isRefreshing = refreshing;
+            isNeedRefreshInCurMotion = !isRefreshing;
+            isRefreshReady = refreshing;
+            return true;
+        }
     }
 
     public boolean isInScreen() {
@@ -78,13 +90,24 @@ public class RefreshViewHolder {
             return false;
         }else{
             this.isInScreen = inScreen;
-            isNeedRefresh = !isRefreshing;
+            isNeedRefreshInCurMotion = !isRefreshing;
             return true;
         }
     }
 
-    public boolean isNeedRefresh() {
-        return isNeedRefresh;
+    /**
+     * 现在是否可以刷新
+     * @return
+     */
+    public boolean canRefresh(){
+        return isRefreshReady && isNeedRefreshInCurMotion&&!isRefreshing;
+    }
+    /**
+     * 在RefreshView从显示到消失的一次过程中是否需要刷新
+     * @return
+     */
+    public boolean isNeedRefreshInCurMotion() {
+        return isNeedRefreshInCurMotion;
     }
 
     /**
@@ -153,16 +176,29 @@ public class RefreshViewHolder {
     }
 
     /**
-     * 活动当前最小显示距离
+     * 获得可以被当做content来滚动的部分的大小
      * @return
      */
-    public int getCurMinDistance(){
-        if(enable&&!isFloat&&isRefreshViewVisible){
+    public int getScrollWithContentDistance(){
+        if(enable&&!isFloat&&isRefreshViewVisible&&isRefreshing){
             return refreshingMinDistance;
         }else{
             return 0;
         }
     }
+
+    /**
+     * 可以被当做content来执行fling动作的部分大小
+     * @return
+     */
+    public int getFlingWithContentDistance(){
+        if(enable&&!isFloat&&isRefreshViewVisible&&(isRefreshing||isRefreshReady)){
+            return refreshingMinDistance;
+        }else{
+            return 0;
+        }
+    }
+
 
     public void setMinDistanceInRefreshing(int distance) {
         this.mMinDisInRefreshing = distance;

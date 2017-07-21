@@ -42,13 +42,11 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private View mTarget;//中间可以滚动的部分
     private RefreshViewHolder mHeader, mFooter;
     private int mScrollContentHeight;
-    private ValueAnimator mAnimator;
     private DecelerateInterpolator mDecelerateInterpolator;
     private final float DECELERATE_INTERPOLATION_FACTOR = 2f;
     private int mHandMoveY = 0;//手指实际移动的距离
     private float mMoveFactor = 2.0f;//实际移动到停止时，移动距离相对于需要移动距离的倍数
     private EasyRefreshListener mListener;
-    private boolean mRefreshAble = true, mLoadMoreAble = true;
 
     //scroll
     public static final int VERTICAL_OVERSCROLL_MAX = 300;
@@ -135,21 +133,21 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     }
 
     public void setRefreshEnable(boolean enable) {
-        mRefreshAble = enable;
+        mHeader.setEnable(enable);
         setRefreshViewVisibility(mHeader, enable);
     }
 
     public void setLoadMoreEnable(boolean enable) {
-        mLoadMoreAble = enable;
+        mFooter.setEnable(enable);
         setRefreshViewVisibility(mFooter, enable);
     }
 
     public boolean getRefreshEnable() {
-        return mRefreshAble;
+        return mHeader.isEnable();
     }
 
     public boolean getLoadMoreEnable() {
-        return mLoadMoreAble;
+        return mFooter.isEnable();
     }
 
     public void setEasyRefreshListener(EasyRefreshListener mListener) {
@@ -159,27 +157,27 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     public void addHeaderView(IRefreshView view) {
         addHeaderView(view.getView(getContext()));
         mHeader.iRefresh = view;
-        setRefreshViewVisibility(mHeader, mRefreshAble);
+        setRefreshViewVisibility(mHeader, mHeader.isEnable());
     }
 
     public void addFooterView(IRefreshView view) {
         addFooterView(view.getView(getContext()));
         mFooter.iRefresh = view;
-        setRefreshViewVisibility(mFooter, mLoadMoreAble);
+        setRefreshViewVisibility(mFooter, mFooter.isEnable());
     }
 
     public void addHeaderView(View header) {
         mHeader.addView(getContext(), header);
         LayoutParams lp_main = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         addView(mHeader.layout, lp_main);
-        setRefreshViewVisibility(mHeader, mRefreshAble);
+        setRefreshViewVisibility(mHeader, mHeader.isEnable());
     }
 
     public void addFooterView(View footer) {
         mFooter.addView(getContext(), footer);
         LayoutParams lp_main = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         addView(mFooter.layout, lp_main);
-        setRefreshViewVisibility(mFooter, mLoadMoreAble);
+        setRefreshViewVisibility(mFooter, mFooter.isEnable());
 
     }
 
@@ -192,29 +190,25 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 //    }
 
     public void dismissRefresh() {
-//        if (!hadHeader()) {
-//            return;
-//        }
-//        if (mHeader.iRefresh != null) {
-//            mHeader.iRefresh.onOutScreen();
-//        }
-//        mHeader.isRefreshing = false;
-//        int scrollY = getScrollY();
-//        if (scrollY != 0)
-//            startAnim(300, new RefreshAnimatorUpdateListener(), scrollY, 0);
+        if(mHeader.setRefreshing(false)){
+            if (mHeader.iRefresh != null) {
+                mHeader.iRefresh.onRefreshingStateChanged(false, false);
+            }
+        }
+        if(springBack(getScrollX(), getScrollY())){
+            ViewCompat.postInvalidateOnAnimation(this);
+        }
     }
 
     public void dismissLoadMore() {
-//        if (!hadFooter()) {
-//            return;
-//        }
-//        if (mFooter.iRefresh != null) {
-//            mFooter.iRefresh.onOutScreen();
-//        }
-//        mFooter.isRefreshing = false;
-//        int scrollY = getScrollY();
-//        if (scrollY != 0)
-//            startAnim(300, new RefreshAnimatorUpdateListener(), scrollY, 0);
+        if(mFooter.setRefreshing(false)){
+            if(mFooter.iRefresh!=null){
+                mFooter.iRefresh.onRefreshingStateChanged(false,false);
+            }
+        }
+        if(springBack(getScrollX(),getScrollY())){
+            ViewCompat.postInvalidateOnAnimation(this);
+        }
     }
 
     private void initVelocityTrackerIfNotExist() {
@@ -302,6 +296,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 logError("onInterceptTouchEvent", "up cancel");
                 /* stop the drag */
                 endDrag();
+                confirmRefresh();
                 if (springBack(getScrollX(), getScrollY())) {
                     ViewCompat.postInvalidateOnAnimation(this);
                 }
@@ -363,7 +358,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 }
                 final int y = (int) ev.getY(activePointerIndex);
                 int deltaY = mLastMotionY - y;
-                Log.e(TAG, "onTouchEvent drag delta="+deltaY+" slop="+mTouchSlop);
+                Log.e(TAG, "onTouchEvent drag delta=" + deltaY + " slop=" + mTouchSlop);
                 if (!mIsBeginDragged && Math.abs(deltaY) > mTouchSlop) {
                     final ViewParent parent = getParent();
                     if (parent != null) {
@@ -389,18 +384,18 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                         mNestedYOffset += mScrollOffset[1];
                         mLastMotionY -= mScrollOffset[1];
                     }
-                    if(scrollInContentRange(deltaY,mScrollConsumed)){
+                    if (scrollInContentRange(deltaY, mScrollConsumed)) {
                         deltaY -= mScrollConsumed[1];
                     }
-                    if(dispatchNestedScroll(0,oldY-getScrollY(),0,deltaY,mScrollOffset)){
+                    if (dispatchNestedScroll(0, oldY - getScrollY(), 0, deltaY, mScrollOffset)) {
                         deltaY += mScrollOffset[1];
-                        Log.e(TAG, "onTouchEvent last "+mScrollOffset[1]);
+                        Log.e(TAG, "onTouchEvent last " + mScrollOffset[1]);
                         mLastMotionY -= mScrollOffset[1];
-                        Log.e(TAG, "onTouchEvent last after"+mLastMotionY);
+                        Log.e(TAG, "onTouchEvent last after" + mLastMotionY);
                         vtev.offsetLocation(0, mScrollOffset[1]);
                         mNestedYOffset += mScrollOffset[1];
                     }
-                    scrollBy(0,deltaY);
+                    scrollBy(0, deltaY);
                     processRefresh();
                 }
                 break;
@@ -411,8 +406,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                     mVelocityTracker.computeCurrentVelocity(1000, mMaxFlingVelocity);
                     float velocity = VelocityTrackerCompat.getYVelocity(mVelocityTracker, mActivatePointerId);
                     if (Math.abs(velocity) > mMinFlingVelocity) {
-                        fling((int) -velocity);
+                        flingWithNestedDispatch(0, (int) -velocity);
                     } else {
+                        confirmRefresh();
                         if (springBack(getScrollX(), getScrollY())) {
                             ViewCompat.postInvalidateOnAnimation(this);
                         }
@@ -465,6 +461,29 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         // TODO: 2017/7/13 考虑当正在刷新时再次拉出是否需要激发刷新事件
         processRefreshHeader();
         processRefreshFooter();
+    }
+
+    private void confirmRefresh() {
+        if (!mHeader.isEmpty() && mHeader.isInScreen() && mHeader.canRefresh()) {
+            if (mHeader.setRefreshing(true)) {
+                if (mHeader.iRefresh != null) {
+                    mHeader.iRefresh.onRefreshingStateChanged(true, false);
+                }
+                if (mListener != null) {
+                    mListener.onRefresh(this);
+                }
+            }
+        }
+        if (!mFooter.isEmpty() && mFooter.isInScreen() && mFooter.canRefresh()) {
+            if (mFooter.setRefreshing(true)) {
+                if (mFooter.iRefresh != null) {
+                    mFooter.iRefresh.onRefreshingStateChanged(true, false);
+                }
+                if (mListener != null) {
+                    mListener.onLoadMore(this);
+                }
+            }
+        }
     }
 
     private void processRefreshHeader() {
@@ -553,12 +572,12 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private boolean springBack(int startX, int startY) {
         // TODO: 2017/7/14 考虑悬浮的情况
         int minY = 0, maxY = 0;
-        if (mHeader.isInScreen() && mHeader.isRefreshReady()) {
+        if (mHeader.isInScreen() && (mHeader.isRefreshing()||mHeader.canRefresh())) {
             minY = -mHeader.getMinDistanceInRefreshing();
         } else {
             minY = 0;
         }
-        if (mFooter.isInScreen() && mFooter.isRefreshReady()) {
+        if (mFooter.isInScreen() && (mFooter.isRefreshing()||mFooter.canRefresh())) {
             maxY = getScrollContentRange() + mFooter.getMinDistanceInRefreshing();
         } else {
             maxY = getScrollContentRange();
@@ -567,16 +586,36 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         return mScroller.springBack(startX, startY, 0, 0, minY, maxY);
     }
 
-    private void fling(int velocity) {
+    private void fling(int velocityY) {
         // TODO: 2017/7/14 考虑悬浮
-        int minY = (mHeader.isRefreshing() || mHeader.isRefreshReady()) ? -mHeader.getMinDistanceInRefreshing() : 0;
-        int maxY = (mFooter.isRefreshing() || mFooter.isRefreshReady()) ? getScrollContentRange() + mFooter.getMinDistanceInRefreshing() : getScrollContentRange();
+//        int minY = (mHeader.isRefreshing() || mHeader.isRefreshReady()) ? -mHeader.getMinDistanceInRefreshing() : 0;
+        int minY = -mHeader.getFlingWithContentDistance();
+//        int maxY = (mFooter.isRefreshing() || mFooter.isRefreshReady()) ? getScrollContentRange() + mFooter.getMinDistanceInRefreshing() : getScrollContentRange();
+        int maxY = getScrollContentRange() + mFooter.getFlingWithContentDistance();
         Log.e(TAG, "fling max=" + maxY);
-        mScroller.fling(getScrollX(), getScrollY(), 0, velocity, 0, 0, minY, maxY, 0, maxY / 2);
+        mScroller.fling(getScrollX(), getScrollY(), 0, velocityY, 0, 0, minY, maxY, 0, maxY / 2);
         mScrollType = SCROLL_TYPE_FLING;
         ViewCompat.postInvalidateOnAnimation(this);
     }
-
+    private boolean flingOrSpringBack(int velocityY){
+        boolean needFling = getScrollY()>=-mHeader.getFlingWithContentDistance()&&getScrollY()<=getScrollContentRange()+mFooter.getFlingWithContentDistance();
+        boolean needSpringBack = false;
+        if(needFling){
+            fling(velocityY);
+        }else{
+            confirmRefresh();
+            if(needSpringBack=springBack(getScrollX(),getScrollY())){
+                ViewCompat.postInvalidateOnAnimation(this);
+            }
+        }
+        return needSpringBack||needFling;
+    }
+    private void flingWithNestedDispatch(int velocityX, int velocityY){
+        if(!dispatchNestedPreFling(velocityX,velocityY)){
+            boolean canFling = flingOrSpringBack(velocityY);
+            dispatchNestedFling(velocityX,velocityY,canFling);
+        }
+    }
     private void abortScroller() {
         Log.e(TAG, "abortAnimation ");
         mScroller.abortAnimation();
@@ -833,17 +872,20 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             int oldY = getScrollY();
             int x = mScroller.getCurrX();
             int y = mScroller.getCurrY();
-            Log.e(TAG, "computeScroll " + oldY + " " + y);
+//            Log.e(TAG, "computeScroll " + oldY + " " + y);
             if (oldX != x || oldY != y) {
                 if (mScrollType == SCROLL_TYPE_FLING) {
-                    int maxTop = (mHeader.isRefreshing() || mHeader.isRefreshReady()) ? mHeader.getMinDistanceInRefreshing() : 0;
-                    int maxBottom = (mFooter.isRefreshing() || mFooter.isRefreshReady()) ? mFooter.getMinDistanceInRefreshing() : 0;
+                    int maxTop = mHeader.getFlingWithContentDistance();
+                    int maxBottom = mFooter.getFlingWithContentDistance();
                     overScrollByCompat(x - oldX, y - oldY, oldX, oldY, 0, getScrollContentRange(), 0, 0, maxTop, maxBottom, false);
-
                 } else {
                     super.scrollTo(x, y);
                 }
                 processRefresh();
+            }else{
+                /*由于scroller的计算可能引起(oldX=x&&oldY=y)的情况发生，这样会导致动画未完成或无法开始，所以此处加上invalidate.
+                * 并且这样也解决了滚动不能到头有时留有一两个像素的问题。（不知所以?）*/
+                invalidate();
             }
         }
     }
@@ -855,12 +897,12 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         }
         int oldY = getScrollY();
         if (dyUnconsumed > 0) {//pull up
-            int minTop = -mHeader.getCurMinDistance();
+            int minTop = -mHeader.getScrollWithContentDistance();
             if (oldY < minTop) {
                 consumed[1] = Math.min(dyUnconsumed, minTop - oldY);
             }
         } else {//pull down
-            int maxBottom = getScrollContentRange() + mFooter.getCurMinDistance();
+            int maxBottom = getScrollContentRange() + mFooter.getScrollWithContentDistance();
             if (oldY > maxBottom) {
                 consumed[1] = Math.max(dyUnconsumed, maxBottom - oldY);
             }
@@ -871,26 +913,27 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         return consumed[1] != 0;
     }
 
-    private boolean scrollInContentRange(int dyUnconsumed,int[] consumed){
+    private boolean scrollInContentRange(int dyUnconsumed, int[] consumed) {
         resetConsumedArray(consumed);
-        if(dyUnconsumed==0){
+        if (dyUnconsumed == 0) {
             return false;
         }
-        int newY = getScrollY()+dyUnconsumed;
-        int min = -mHeader.getCurMinDistance();
-        int max = getScrollContentRange()+mFooter.getCurMinDistance();
-        consumed[1]=dyUnconsumed;
-        if(newY<min){
-            consumed[1]=dyUnconsumed -(newY-min);
-        }else if(newY>max){
-            consumed[1]=dyUnconsumed -(newY-max);
+        int newY = getScrollY() + dyUnconsumed;
+        int min = -mHeader.getScrollWithContentDistance();
+        int max = getScrollContentRange() + mFooter.getScrollWithContentDistance();
+        consumed[1] = dyUnconsumed;
+        if (newY < min) {
+            consumed[1] = dyUnconsumed - (newY - min);
+        } else if (newY > max) {
+            consumed[1] = dyUnconsumed - (newY - max);
         }
-        scrollBy(0,consumed[1]);
-        return consumed[1]!=0;
+        scrollBy(0, consumed[1]);
+        return consumed[1] != 0;
     }
+
     private void resetConsumedArray(int[] consumed) {
-        consumed[0]=0;
-        consumed[1]=0;
+        consumed[0] = 0;
+        consumed[1] = 0;
 
     }
 
@@ -959,10 +1002,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 //            myUnconsumed = dyUnconsumed - myConsumed;
 //            scrollBy(0, myConsumed);
 //        }
-        if(scrollInContentRange(dyUnconsumed,mScrollConsumed)){
-            dyUnconsumed-=mScrollConsumed[1];
+        if (scrollInContentRange(dyUnconsumed, mScrollConsumed)) {
+            dyUnconsumed -= mScrollConsumed[1];
         }
-        if(dispatchNestedScroll(dxConsumed, mScrollConsumed[1], dxUnconsumed, dyUnconsumed, mScrollOffset)){
+        if (dispatchNestedScroll(dxConsumed, mScrollConsumed[1], dxUnconsumed, dyUnconsumed, mScrollOffset)) {
             dyUnconsumed += mScrollOffset[1];
         }
         if (dyUnconsumed != 0) {
@@ -974,15 +1017,16 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
         Log.e(TAG, "onNestedPreFling");
+        return dispatchNestedPreFling(velocityX,velocityY);
+//        return flingWithNestedDispatch((int)velocityX,(int)velocityX);
 //        return super.onNestedPreFling(target, velocityX, velocityY);
-        return false;
     }
 
     @Override
     public boolean onNestedFling(View target, float velocityX, float velocityY, boolean consumed) {
         Log.e(TAG, "onNestedFling " + consumed);
         if (!consumed) {
-            fling((int) velocityY);
+            flingOrSpringBack((int) velocityY);
             return true;
         }
         return false;
@@ -994,6 +1038,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         mParentHelper.onStopNestedScroll(child);
         stopNestedScroll();
         mScroller.computeScrollOffset();
+        confirmRefresh();
         if (mScroller.isFinished()) {
             Log.e(TAG, "onStopNestedScroll start");
             springBack(getScrollX(), getScrollY());

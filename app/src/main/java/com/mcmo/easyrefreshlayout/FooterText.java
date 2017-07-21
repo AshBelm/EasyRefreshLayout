@@ -28,8 +28,8 @@ public class FooterText implements IRefreshView {
     }
 
     @Override
-    public void onRefreshingStateChanged(boolean refreshing) {
-        Log.e("refresh", "onRefreshingStateChanged: "+refreshing );
+    public void onRefreshingStateChanged(boolean refreshing,boolean touch) {
+        tv.setText("刷新"+refreshing);
     }
 
 

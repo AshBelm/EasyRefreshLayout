@@ -7,11 +7,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.mcmo.easyrefreshlayout.library.EasyRefreshLayout;
+import com.mcmo.easyrefreshlayout.library.impl.EasyRefreshListener;
 
 public class ScrollingActivity extends AppCompatActivity {
     private RecyclerView rv;
@@ -34,9 +36,34 @@ public class ScrollingActivity extends AppCompatActivity {
         rv.setLayoutManager(new LinearLayoutManager(this));
         rv.setAdapter(new MAdapter() );
 
-        EasyRefreshLayout erlayout= (EasyRefreshLayout) findViewById(R.id.easyLayout);
+        initRefresh();
+    }
+
+    private void initRefresh() {
+        final EasyRefreshLayout erlayout= (EasyRefreshLayout) findViewById(R.id.easyLayout);
         erlayout.addHeaderView(new HeaderChair());
         erlayout.addFooterView(new FooterText());
+        erlayout.setEasyRefreshListener(new EasyRefreshListener() {
+            @Override
+            public void onRefresh(View v) {
+                erlayout.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        erlayout.dismissRefresh();
+                    }
+                },10000);
+            }
+
+            @Override
+            public void onLoadMore(View v) {
+                erlayout.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        erlayout.dismissLoadMore();
+                    }
+                },10000);
+            }
+        });
     }
 
     private class MAdapter extends RecyclerView.Adapter<MHolder>{
