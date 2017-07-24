@@ -134,12 +134,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 
     public void setRefreshEnable(boolean enable) {
         mHeader.setEnable(enable);
-        setRefreshViewVisibility(mHeader, enable);
     }
 
     public void setLoadMoreEnable(boolean enable) {
         mFooter.setEnable(enable);
-        setRefreshViewVisibility(mFooter, enable);
     }
 
     public boolean getRefreshEnable() {
@@ -150,6 +148,19 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         return mFooter.isEnable();
     }
 
+    public void setRefreshJustSpring(boolean justSpring){
+        mHeader.setRefreshViewVisible(!justSpring);
+    }
+    public boolean getRefreshJustSpring(){
+        return !mHeader.isRefreshViewVisible();
+    }
+    public void setLoadMoreJustSpring(boolean justSpring){
+        mFooter.setRefreshViewVisible(!justSpring);
+    }
+    public boolean getLoadMoreJustSpring(){
+        return !mFooter.isRefreshViewVisible();
+    }
+
     public void setEasyRefreshListener(EasyRefreshListener mListener) {
         this.mListener = mListener;
     }
@@ -157,13 +168,11 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     public void addHeaderView(IRefreshView view) {
         addHeaderView(view.getView(getContext()));
         mHeader.iRefresh = view;
-        setRefreshViewVisibility(mHeader, mHeader.isEnable());
     }
 
     public void addFooterView(IRefreshView view) {
         addFooterView(view.getView(getContext()));
         mFooter.iRefresh = view;
-        setRefreshViewVisibility(mFooter, mFooter.isEnable());
     }
 
     public void addHeaderView(View header) {
@@ -542,7 +551,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 }
             }
             if (mFooter.iRefresh != null) {
-                MotionParams p = MotionParams.create(mHeader, consumedY);
+                MotionParams p = MotionParams.create(mFooter, consumedY);
                 if (readyChanged) {
                     mFooter.iRefresh.onReadyStateChanged(mFooter.isRefreshReady());
                 }
@@ -872,7 +881,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             int oldY = getScrollY();
             int x = mScroller.getCurrX();
             int y = mScroller.getCurrY();
-//            Log.e(TAG, "computeScroll " + oldY + " " + y);
+            Log.e(TAG, "computeScroll " + oldY + " " + y);
             if (oldX != x || oldY != y) {
                 if (mScrollType == SCROLL_TYPE_FLING) {
                     int maxTop = mHeader.getFlingWithContentDistance();

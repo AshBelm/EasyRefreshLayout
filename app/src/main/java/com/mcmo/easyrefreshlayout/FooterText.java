@@ -14,6 +14,7 @@ import com.mcmo.easyrefreshlayout.library.impl.IRefreshView;
  */
 
 public class FooterText implements IRefreshView {
+    private static final String TAG = "FooterRebabc";
     TextView tv;
     @Override
     public View getView(Context context) {
@@ -24,28 +25,29 @@ public class FooterText implements IRefreshView {
 
     @Override
     public void scroll(View view, MotionParams params) {
-
+        Log.e(TAG, "scroll "+params.toString());
     }
 
     @Override
     public void onRefreshingStateChanged(boolean refreshing,boolean touch) {
         tv.setText("刷新"+refreshing);
+        Log.e(TAG, "onRefreshingStateChanged refreshing = "+refreshing+" touch = "+touch);
     }
 
 
     @Override
     public void onInScreen() {
-        Log.e("refresh", "onInScreen: " );
+        Log.e(TAG, "onInScreen: " );
     }
 
     @Override
     public void onOutScreen() {
-        Log.e("refresh", "onOutScreen: " );
+        Log.e(TAG, "onOutScreen: " );
     }
 
     @Override
     public void onReadyStateChanged(boolean isReady) {
-
+        Log.e(TAG, "onReadyStateChanged isReady = "+isReady);
     }
 
 }

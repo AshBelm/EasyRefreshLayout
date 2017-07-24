@@ -76,6 +76,15 @@ public class RefreshViewHolder {
         }
     }
 
+    public boolean isRefreshViewVisible() {
+        return isRefreshViewVisible;
+    }
+
+    public void setRefreshViewVisible(boolean refreshViewVisible) {
+        isRefreshViewVisible = refreshViewVisible;
+        setLayoutVisibility(refreshViewVisible);
+    }
+
     public boolean isInScreen() {
         return isInScreen;
     }
@@ -123,18 +132,6 @@ public class RefreshViewHolder {
         return isFloat;
     }
 
-    /**
-     * 设置刷新view是否可见
-     *
-     * @param visible
-     */
-    private void setVisible(boolean visible) {
-        this.isRefreshViewVisible = visible;
-    }
-
-    public boolean isVisible() {
-        return isRefreshViewVisible;
-    }
 
     /**
      * 设置是否可用
@@ -212,7 +209,14 @@ public class RefreshViewHolder {
     public int getMaxScrollDistance() {
         return (enable&&!isFloat) ? isRefreshViewVisible ? maxDisplayDistance : springDistance : 0;
     }
-
+    private void setLayoutVisibility(boolean visibility){
+        if(!isEmpty()){
+            int vi = visibility?View.VISIBLE:View.INVISIBLE;
+            if(layout.getVisibility()!=vi){
+                layout.setVisibility(vi);
+            }
+        }
+    }
     public boolean isEmpty() {
         return layout == null;
     }
@@ -228,6 +232,7 @@ public class RefreshViewHolder {
         if (v instanceof IRefreshView) {
             iRefresh = (IRefreshView) v;
         }
+        setLayoutVisibility(isRefreshViewVisible);
     }
 
     public void layout(int l, int t, int r, int b) {
@@ -260,18 +265,25 @@ public class RefreshViewHolder {
         int halfMaxHeight = (mRefreshLayout.getMeasuredHeight() + 1) / 2;
         if (mMaxDis <= 0) {
             maxDisplayDistance = height>halfMaxHeight? (int) (height * 1.5f) :halfMaxHeight;
+        }else{
+            maxDisplayDistance =  mMaxDis;
         }
         if (mActDis <= 0) {
             activateDistance = height;
         } else if (mActDis > maxDisplayDistance) {
             activateDistance = maxDisplayDistance;
+        }else{
+            activateDistance = mActDis;
         }
         if (mMinDisInRefreshing <= 0) {
             refreshingMinDistance = height;
         } else if (mMinDisInRefreshing > maxDisplayDistance) {
             refreshingMinDistance = maxDisplayDistance;
+        }else{
+            refreshingMinDistance = mMinDisInRefreshing;
         }
         springDistance = maxDisplayDistance-refreshingMinDistance;
+        Log.e("Holder", "\n"+"measureDistance max="+maxDisplayDistance+" min="+refreshingMinDistance+" act="+activateDistance );
     }
 
 

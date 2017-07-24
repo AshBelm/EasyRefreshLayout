@@ -16,6 +16,7 @@ import com.mcmo.easyrefreshlayout.library.EasyRefreshLayout;
 import com.mcmo.easyrefreshlayout.library.impl.EasyRefreshListener;
 
 public class ScrollingActivity extends AppCompatActivity {
+    private static final String TAG = "ScrollingActivity";
     private RecyclerView rv;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +43,11 @@ public class ScrollingActivity extends AppCompatActivity {
     private void initRefresh() {
         final EasyRefreshLayout erlayout= (EasyRefreshLayout) findViewById(R.id.easyLayout);
         erlayout.addHeaderView(new HeaderChair());
-        erlayout.addFooterView(new FooterText());
+//        erlayout.addFooterView(new FooterText());
         erlayout.setEasyRefreshListener(new EasyRefreshListener() {
             @Override
             public void onRefresh(View v) {
+                Log.e(TAG, "onRefresh");
                 erlayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -56,14 +58,19 @@ public class ScrollingActivity extends AppCompatActivity {
 
             @Override
             public void onLoadMore(View v) {
+                Log.e(TAG, "onLoadMore");
                 erlayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         erlayout.dismissLoadMore();
                     }
-                },10000);
+                },3000);
             }
         });
+//        erlayout.setRefreshJustSpring(true);
+//        erlayout.setLoadMoreJustSpring(true);
+//        erlayout.setRefreshEnable(false);
+
     }
 
     private class MAdapter extends RecyclerView.Adapter<MHolder>{

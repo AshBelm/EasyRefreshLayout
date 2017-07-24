@@ -1,7 +1,6 @@
 package com.mcmo.easyrefreshlayout.library.entity;
 
 import com.mcmo.easyrefreshlayout.library.RefreshViewHolder;
-import com.mcmo.easyrefreshlayout.library.impl.IRefreshView;
 
 /**
  * Created by ZhangWei on 2017/7/13.
@@ -19,7 +18,7 @@ public class MotionParams {
     /**
      * 回弹的最大距离
      */
-    public int springDistance;
+    public int minInRefreshDistance;
     /**
      * 已经移动的距离(view已经显示的大小)
      */
@@ -38,6 +37,7 @@ public class MotionParams {
         params.consumedDistance = consumedY;
         params.maxDistance = view.getMaxScrollDistance();
         params.activateDistance = view.getActivateDistance();
+        params.minInRefreshDistance = view.getMinDistanceInRefreshing();
         params.isReady = view.isRefreshReady();
         params.isRefreshing = view.isRefreshing();
         return params;
@@ -48,7 +48,7 @@ public class MotionParams {
         return "MotionParams{" +
                 "maxDistance=" + maxDistance +
                 ", activateDistance=" + activateDistance +
-                ", springDistance=" + springDistance +
+                ", minInRefreshDistance=" + minInRefreshDistance +
                 ", consumedDistance=" + consumedDistance +
                 ", isRefreshing=" + isRefreshing +
                 ", isReady=" + isReady +
