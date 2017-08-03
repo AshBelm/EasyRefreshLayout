@@ -18,6 +18,7 @@ import com.mcmo.easyrefreshlayout.library.impl.EasyRefreshListener;
 public class ScrollingActivity extends AppCompatActivity {
     private static final String TAG = "ScrollingActivity";
     private RecyclerView rv;
+    private MAdapter mAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,7 +36,8 @@ public class ScrollingActivity extends AppCompatActivity {
         });
         rv = (RecyclerView) findViewById(R.id.rv);
         rv.setLayoutManager(new LinearLayoutManager(this));
-        rv.setAdapter(new MAdapter() );
+        mAdapter = new MAdapter();
+        rv.setAdapter(mAdapter);
 
         initRefresh();
     }
@@ -43,7 +45,7 @@ public class ScrollingActivity extends AppCompatActivity {
     private void initRefresh() {
         final EasyRefreshLayout erlayout= (EasyRefreshLayout) findViewById(R.id.easyLayout);
         erlayout.addHeaderView(new HeaderChair());
-//        erlayout.addFooterView(new FooterText());
+        erlayout.addFooterView(new FooterText());
         erlayout.setEasyRefreshListener(new EasyRefreshListener() {
             @Override
             public void onRefresh(View v) {
@@ -63,6 +65,8 @@ public class ScrollingActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         erlayout.dismissLoadMore();
+                        mAdapter.data+=5;
+                        mAdapter.notifyDataSetChanged();
                     }
                 },3000);
             }
@@ -85,12 +89,13 @@ public class ScrollingActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(MHolder holder, int position) {
+            Log.e(TAG, "onBindViewHolder + "+position);
             holder.tv.setText(position+"");
         }
-
+        public int data = 20;
         @Override
         public int getItemCount() {
-            return 100;
+            return data;
         }
     }
     private class MHolder extends RecyclerView.ViewHolder{

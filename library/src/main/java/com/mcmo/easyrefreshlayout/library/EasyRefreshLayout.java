@@ -1,6 +1,5 @@
 package com.mcmo.easyrefreshlayout.library;
 
-import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
@@ -11,6 +10,7 @@ import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingChildHelper;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
+import android.support.v4.view.ScrollingView;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ScrollerCompat;
@@ -25,6 +25,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.AbsListView;
+import android.widget.ScrollView;
 
 import com.mcmo.easyrefreshlayout.library.entity.MotionParams;
 import com.mcmo.easyrefreshlayout.library.entity.SpringDock;
@@ -40,6 +41,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private NestedScrollingParentHelper mParentHelper;
     private NestedScrollingChildHelper mChildHelper;
     private View mTarget;//中间可以滚动的部分
+    private boolean mTargetCanScroll;
+    private boolean mFooterSpringFixed;//在loadmore结束时targetView是否会跟着一起回弹(主要是针对可滚动的view来说),true不回弹，false回弹
+    private boolean mInLoadMoreDismissing;
     private RefreshViewHolder mHeader, mFooter;
     private int mScrollContentHeight;
     private DecelerateInterpolator mDecelerateInterpolator;
@@ -97,6 +101,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             mFooter.setMaxDistance(ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footMaxDistance, 0));
             mFooter.setMinDistanceInRefreshing(ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footMinDistance, 0));
             mFooter.setActivateDistance(ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footActivateDistance, 0));
+            mHeader.springDock = SpringDock.create(ta.getInt(R.styleable.EasyRefreshLayout_headerDock,1));
+            mFooter.springDock = SpringDock.create(ta.getInt(R.styleable.EasyRefreshLayout_footerDock,1));
+            mFooterSpringFixed = ta.getBoolean(R.styleable.EasyRefreshLayout_footerSpringFixed,false);
             ta.recycle();
         }
         if (headerId != -1) {
@@ -216,6 +223,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             }
         }
         if(springBack(getScrollX(),getScrollY())){
+            mInLoadMoreDismissing = true;
             ViewCompat.postInvalidateOnAnimation(this);
         }
     }
@@ -579,6 +587,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     }
 
     private boolean springBack(int startX, int startY) {
+        mInLoadMoreDismissing = false;
         // TODO: 2017/7/14 考虑悬浮的情况
         int minY = 0, maxY = 0;
         if (mHeader.isInScreen() && (mHeader.isRefreshing()||mHeader.canRefresh())) {
@@ -679,6 +688,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private View ensureTarget() {
         int count = getChildCount();
         View target = null;
+        mTargetCanScroll = false;
         for (int i = 0; i < count; i++) {
             View view = getChildAt(i);
             if (view == mHeader.layout || view == mFooter.layout) {
@@ -686,6 +696,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             } else {
                 if (target == null) {
                     target = view;
+                    if(target instanceof ScrollingView|| target instanceof AbsListView||target instanceof ScrollView){
+                        mTargetCanScroll = true;
+                    }
                 } else {
                     throw new IllegalStateException("EasyRefreshLayout can host only one direct child");
                 }
@@ -877,10 +890,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     @Override
     public void computeScroll() {
         if (mScroller.computeScrollOffset()) {
-            int oldX = getScrollX();
-            int oldY = getScrollY();
-            int x = mScroller.getCurrX();
-            int y = mScroller.getCurrY();
+            final int oldX = getScrollX();
+            final int oldY = getScrollY();
+            final int x = mScroller.getCurrX();
+            final int y = mScroller.getCurrY();
             Log.e(TAG, "computeScroll " + oldY + " " + y);
             if (oldX != x || oldY != y) {
                 if (mScrollType == SCROLL_TYPE_FLING) {
@@ -889,6 +902,10 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                     overScrollByCompat(x - oldX, y - oldY, oldX, oldY, 0, getScrollContentRange(), 0, 0, maxTop, maxBottom, false);
                 } else {
                     super.scrollTo(x, y);
+                    if(mTargetCanScroll&& mFooterSpringFixed &&mInLoadMoreDismissing){
+                        int dy = oldY - y;
+                        mTarget.scrollBy(0,dy);
+                    }
                 }
                 processRefresh();
             }else{

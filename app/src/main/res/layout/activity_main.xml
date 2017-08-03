@@ -4,49 +4,17 @@
     android:id="@+id/easyLayout"
     android:layout_width="match_parent"
     android:layout_height="500dp"
-    android:background="#ff00f0"
-    android:layout_marginTop="20dp"
-    android:paddingTop="40dp"
-    android:paddingLeft="20dp"
-    android:paddingBottom="50dp"
     android:layout_marginBottom="20dp"
-    >
-    <LinearLayout
-        android:id="@+id/llay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="40dp"
-        android:layout_marginBottom="30dp"
-        android:background="#00ffff"
-        android:orientation="vertical">
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:src="@mipmap/ic_launcher"/>
+    android:layout_marginTop="20dp"
+    android:background="#ff00f0"
+    android:paddingBottom="50dp"
+    android:paddingLeft="20dp"
+    android:paddingTop="40dp"
+    app:footerSpringFixed="true">
 
-        <TextView
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:text="asdfaasdflkamefjoaijsdofjaposdjfpaojwpoefjpaosjpdfpaowjespfojepo"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="300dp"
-            android:text="button"/>
-        <TextView
-            android:id="@+id/tv_click"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:gravity="center"
-            android:text="click"
-            />
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv"
-            android:layout_width="200dp"
-            android:background="@color/colorPrimary"
-        android:layout_height="240dp"></android.support.v7.widget.RecyclerView>
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/ic_launcher"/>
-    </LinearLayout>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimary"></android.support.v7.widget.RecyclerView>
 </com.mcmo.easyrefreshlayout.library.EasyRefreshLayout>

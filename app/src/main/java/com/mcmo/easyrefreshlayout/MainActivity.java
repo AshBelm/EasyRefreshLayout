@@ -4,12 +4,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mcmo.easyrefreshlayout.library.EasyRefreshLayout;
+import com.mcmo.easyrefreshlayout.library.impl.EasyRefreshListener;
 
 public class MainActivity extends AppCompatActivity {
     private RecyclerView rv;
@@ -36,33 +39,35 @@ public class MainActivity extends AppCompatActivity {
         erlayout.addFooterView(new FooterText());
 //        erlayout.setLoadMoreEnable(true);
 //        erlayout.setRefreshEnable(true);
-//        erlayout.setEasyRefreshListener(new EasyRefreshListener() {
-//            @Override
-//            public void onRefresh(View v) {
-//               //上拉刷新
-//               // erlayout.dismissRefresh();消失刷新动画
-//                Log.e("aa", "onRefresh");
-//                erlayout.postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        erlayout.dismissRefresh();
-//                    }
-//                },3000);
-//            }
-//
-//            @Override
-//            public void onLoadMore(View v) {
-//                //下拉加载
-//                //erlayout.dismissLoadMore();消失加载更多动画
-//                Log.e("aa", "onLoadMore");
-//                erlayout.postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        erlayout.dismissLoadMore();
-//                    }
-//                },3000);
-//            }
-//        });
+        erlayout.setEasyRefreshListener(new EasyRefreshListener() {
+            @Override
+            public void onRefresh(View v) {
+               //上拉刷新
+               // erlayout.dismissRefresh();消失刷新动画
+                Log.e("aa", "onRefresh");
+                erlayout.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        erlayout.dismissRefresh();
+                    }
+                },3000);
+            }
+
+            @Override
+            public void onLoadMore(View v) {
+                //下拉加载
+                //erlayout.dismissLoadMore();消失加载更多动画
+                Log.e("aa", "onLoadMore");
+                erlayout.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        erlayout.dismissLoadMore();
+                        count += 10;
+                        adapter.notifyDataSetChanged();
+                    }
+                },3000);
+            }
+        });
 //        findViewById(R.id.tv_click).setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -80,15 +85,15 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(RVHodler holder, int position) {
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ViewGroup vp = (ViewGroup) findViewById(R.id.llay);
-                    TextView tv = new TextView(MainActivity.this);
-                    tv.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-                    vp.addView(tv);
-                }
-            });
+//            holder.itemView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    ViewGroup vp = (ViewGroup) findViewById(R.id.llay);
+//                    TextView tv = new TextView(MainActivity.this);
+//                    tv.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+//                    vp.addView(tv);
+//                }
+//            });
             if(position==getItemCount()-1){
                 holder.tv.setText("end");
             }else{
