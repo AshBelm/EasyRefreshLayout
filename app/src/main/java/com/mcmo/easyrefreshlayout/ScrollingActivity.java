@@ -55,7 +55,7 @@ public class ScrollingActivity extends AppCompatActivity {
                     public void run() {
                         erlayout.dismissRefresh();
                     }
-                },10000);
+                },1000);
             }
 
             @Override
@@ -92,7 +92,7 @@ public class ScrollingActivity extends AppCompatActivity {
             Log.e(TAG, "onBindViewHolder + "+position);
             holder.tv.setText(position+"");
         }
-        public int data = 20;
+        public int data = 120;
         @Override
         public int getItemCount() {
             return data;

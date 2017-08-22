@@ -38,6 +38,8 @@ import com.mcmo.easyrefreshlayout.library.impl.IRefreshView;
 
 public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParent, NestedScrollingChild {
     private static final String TAG = "EasyRefreshLayout";
+    private static final String TAG_NESTED = "NestedScrollEvent";
+    private static final String TAG_NESTED_DATA = "NestedScrollData";
     private NestedScrollingParentHelper mParentHelper;
     private NestedScrollingChildHelper mChildHelper;
     private View mTarget;//中间可以滚动的部分
@@ -101,9 +103,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             mFooter.setMaxDistance(ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footMaxDistance, 0));
             mFooter.setMinDistanceInRefreshing(ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footMinDistance, 0));
             mFooter.setActivateDistance(ta.getDimensionPixelSize(R.styleable.EasyRefreshLayout_footActivateDistance, 0));
-            mHeader.springDock = SpringDock.create(ta.getInt(R.styleable.EasyRefreshLayout_headerDock,1));
-            mFooter.springDock = SpringDock.create(ta.getInt(R.styleable.EasyRefreshLayout_footerDock,1));
-            mFooterSpringFixed = ta.getBoolean(R.styleable.EasyRefreshLayout_footerSpringFixed,false);
+            mHeader.springDock = SpringDock.create(ta.getInt(R.styleable.EasyRefreshLayout_headerDock, 1));
+            mFooter.springDock = SpringDock.create(ta.getInt(R.styleable.EasyRefreshLayout_footerDock, 1));
+            mFooterSpringFixed = ta.getBoolean(R.styleable.EasyRefreshLayout_footerSpringFixed, false);
             ta.recycle();
         }
         if (headerId != -1) {
@@ -118,7 +120,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     }
 
     private void init() {
-        mDecelerateInterpolator = new DecelerateInterpolator(DECELERATE_INTERPOLATION_FACTOR);
+//        mDecelerateInterpolator = new DecelerateInterpolator(DECELERATE_INTERPOLATION_FACTOR);
         mScroller = ScrollerCompat.create(getContext(), null);
         setFocusable(true);
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
@@ -155,16 +157,19 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         return mFooter.isEnable();
     }
 
-    public void setRefreshJustSpring(boolean justSpring){
+    public void setRefreshJustSpring(boolean justSpring) {
         mHeader.setRefreshViewVisible(!justSpring);
     }
-    public boolean getRefreshJustSpring(){
+
+    public boolean getRefreshJustSpring() {
         return !mHeader.isRefreshViewVisible();
     }
-    public void setLoadMoreJustSpring(boolean justSpring){
+
+    public void setLoadMoreJustSpring(boolean justSpring) {
         mFooter.setRefreshViewVisible(!justSpring);
     }
-    public boolean getLoadMoreJustSpring(){
+
+    public boolean getLoadMoreJustSpring() {
         return !mFooter.isRefreshViewVisible();
     }
 
@@ -206,23 +211,23 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 //    }
 
     public void dismissRefresh() {
-        if(mHeader.setRefreshing(false)){
+        if (mHeader.setRefreshing(false)) {
             if (mHeader.iRefresh != null) {
                 mHeader.iRefresh.onRefreshingStateChanged(false, false);
             }
         }
-        if(springBack(getScrollX(), getScrollY())){
+        if (springBack(getScrollX(), getScrollY())) {
             ViewCompat.postInvalidateOnAnimation(this);
         }
     }
 
     public void dismissLoadMore() {
-        if(mFooter.setRefreshing(false)){
-            if(mFooter.iRefresh!=null){
-                mFooter.iRefresh.onRefreshingStateChanged(false,false);
+        if (mFooter.setRefreshing(false)) {
+            if (mFooter.iRefresh != null) {
+                mFooter.iRefresh.onRefreshingStateChanged(false, false);
             }
         }
-        if(springBack(getScrollX(),getScrollY())){
+        if (springBack(getScrollX(), getScrollY())) {
             mInLoadMoreDismissing = true;
             ViewCompat.postInvalidateOnAnimation(this);
         }
@@ -253,15 +258,15 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         int action = ev.getAction();
         if (action == MotionEvent.ACTION_MOVE && mIsBeginDragged) {
-            Log.e(TAG, "onInterceptTouchEvent trhe");
+            Logger.d(TAG_NESTED, "onInterceptTouchEvent move isBeginDragged=true");
             return true;
         }
         int y = (int) ev.getY();
         switch (action & MotionEventCompat.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                logError("onInterceptTouchEvent", "down");
+                Logger.d(TAG_NESTED, "onInterceptTouchEvent down");
                 if (!inContentChild((int) ev.getX(), y)) {
-                    Log.e(TAG, "onInterceptTouchEvent out of child");
+                    Logger.d(TAG_NESTED, "onInterceptTouchEvent out of child");
                     mIsBeginDragged = false;
                     recycleVelocityTracker();
                     break;
@@ -280,7 +285,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
                 break;
             case MotionEvent.ACTION_MOVE:
-                logError("onInterceptTouchEvent", "move");
+                Logger.d(TAG_NESTED, "onInterceptTouchEvent move");
                 final int activePointerId = mActivatePointerId;
                 if (activePointerId == INVALID_POINTER) {
                     // If we don't have a valid id, the touch down wasn't on scroll content.
@@ -310,18 +315,17 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                logError("onInterceptTouchEvent", "up cancel");
+                Logger.d(TAG_NESTED, "onInterceptTouchEvent up or cancel");
                 /* stop the drag */
                 endDrag();
                 confirmRefresh();
                 if (springBack(getScrollX(), getScrollY())) {
                     ViewCompat.postInvalidateOnAnimation(this);
                 }
-                stopNestedScroll();
                 break;
             case MotionEvent.ACTION_POINTER_UP:
                 onSecondaryPointerUp(ev);
-                logError("onInterceptTouchEvent", "pointer up");
+                Logger.d(TAG_NESTED, "onInterceptTouchEvent pointer up");
                 break;
         }
         return mIsBeginDragged;
@@ -340,12 +344,12 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         vtev.offsetLocation(0, mNestedYOffset);
         switch (actionMask) {
             case MotionEvent.ACTION_DOWN:
-                logError("onTouchEvent", "down");
+                Logger.d(TAG_NESTED, "onTouchEvent down");
                 if (mTarget == null) {
                     return false;
                 }
                 if (!inContentChild((int) ev.getX(), motionY)) {
-                    Log.e(TAG, "onTouchEvent out of child");
+                    Logger.d(TAG_NESTED, "onTouchEvent down out of child");
                     mIsBeginDragged = false;
                     recycleVelocityTracker();
                     break;
@@ -353,6 +357,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 /**
                  * If being flinged and touch on screen,initiate drag immediately
                  */
+                mScroller.computeScrollOffset();
                 if ((mIsBeginDragged = !mScroller.isFinished())) {
                     final ViewParent parent = getParent();
                     if (parent != null) {
@@ -367,7 +372,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 startNestedScroll(ViewCompat.SCROLL_AXIS_VERTICAL);
                 break;
             case MotionEvent.ACTION_MOVE:
-                logError("onTouchEvent", "move");
+                Logger.d(TAG_NESTED, "onTouchEvent move");
                 final int activePointerIndex = ev.findPointerIndex(mActivatePointerId);
                 if (activePointerIndex == -1) {
                     Log.e(TAG, "touch Invalid pointerId=" + mActivatePointerId + " in onTouchEvent");
@@ -375,7 +380,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 }
                 final int y = (int) ev.getY(activePointerIndex);
                 int deltaY = mLastMotionY - y;
-                Log.e(TAG, "onTouchEvent drag delta=" + deltaY + " slop=" + mTouchSlop);
+                Logger.d(TAG_NESTED_DATA, "onTouchEvent move deltaY = "+deltaY);
                 if (!mIsBeginDragged && Math.abs(deltaY) > mTouchSlop) {
                     final ViewParent parent = getParent();
                     if (parent != null) {
@@ -417,7 +422,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                logError("onTouchEvent", "up");
+                Logger.d(TAG_NESTED, "onTouchEvent up");
                 if (mIsBeginDragged) {
                     mVelocityTracker.addMovement(vtev);
                     mVelocityTracker.computeCurrentVelocity(1000, mMaxFlingVelocity);
@@ -434,7 +439,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 endDrag();
                 break;
             case MotionEvent.ACTION_CANCEL:
-                logError("onTouchEvent", "cancel");
+                Logger.d(TAG_NESTED, "onTouchEvent cancel");
                 if (mIsBeginDragged) {
                     if (springBack(getScrollX(), getScrollY())) {
                         ViewCompat.postInvalidateOnAnimation(this);
@@ -443,6 +448,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 }
                 break;
             case MotionEvent.ACTION_POINTER_UP:
+                Logger.d(TAG_NESTED, "onTouchEvent pointer up");
                 onSecondaryPointerUp(ev);
                 mLastMotionY = (int) ev.getY(ev.findPointerIndex(mActivatePointerId));
                 break;
@@ -457,8 +463,11 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     private void endDrag() {
         mIsBeginDragged = false;
         recycleVelocityTracker();
-        stopNestedScroll();
         mActivatePointerId = INVALID_POINTER;
+        final ViewParent parent = getParent();
+        if (parent != null) {
+            parent.requestDisallowInterceptTouchEvent(false);
+        }
     }
 
     private void onSecondaryPointerUp(MotionEvent ev) {
@@ -480,6 +489,9 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         processRefreshFooter();
     }
 
+    /**
+     * 判断是否开始刷新
+     */
     private void confirmRefresh() {
         if (!mHeader.isEmpty() && mHeader.isInScreen() && mHeader.canRefresh()) {
             if (mHeader.setRefreshing(true)) {
@@ -590,12 +602,12 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         mInLoadMoreDismissing = false;
         // TODO: 2017/7/14 考虑悬浮的情况
         int minY = 0, maxY = 0;
-        if (mHeader.isInScreen() && (mHeader.isRefreshing()||mHeader.canRefresh())) {
+        if (mHeader.isInScreen() && (mHeader.isRefreshing() || mHeader.canRefresh())) {
             minY = -mHeader.getMinDistanceInRefreshing();
         } else {
             minY = 0;
         }
-        if (mFooter.isInScreen() && (mFooter.isRefreshing()||mFooter.canRefresh())) {
+        if (mFooter.isInScreen() && (mFooter.isRefreshing() || mFooter.canRefresh())) {
             maxY = getScrollContentRange() + mFooter.getMinDistanceInRefreshing();
         } else {
             maxY = getScrollContentRange();
@@ -615,25 +627,31 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         mScrollType = SCROLL_TYPE_FLING;
         ViewCompat.postInvalidateOnAnimation(this);
     }
-    private boolean flingOrSpringBack(int velocityY){
-        boolean needFling = getScrollY()>=-mHeader.getFlingWithContentDistance()&&getScrollY()<=getScrollContentRange()+mFooter.getFlingWithContentDistance();
+
+    private boolean flingOrSpringBack(int velocityY) {
+        boolean needFling = getScrollY() >= -mHeader.getFlingWithContentDistance() && getScrollY() <= getScrollContentRange() + mFooter.getFlingWithContentDistance();
         boolean needSpringBack = false;
-        if(needFling){
+        if (needFling) {
             fling(velocityY);
-        }else{
+        } else {
             confirmRefresh();
-            if(needSpringBack=springBack(getScrollX(),getScrollY())){
+            if (needSpringBack = springBack(getScrollX(), getScrollY())) {
                 ViewCompat.postInvalidateOnAnimation(this);
             }
         }
-        return needSpringBack||needFling;
+        return needSpringBack || needFling;
     }
-    private void flingWithNestedDispatch(int velocityX, int velocityY){
-        if(!dispatchNestedPreFling(velocityX,velocityY)){
+
+    private void flingWithNestedDispatch(int velocityX, int velocityY) {
+        if (!dispatchNestedPreFling(velocityX, velocityY)) {
+            Log.e(TAG, "bbc flingWithNestedDispatch true " + velocityX + " " + velocityY);
             boolean canFling = flingOrSpringBack(velocityY);
-            dispatchNestedFling(velocityX,velocityY,canFling);
+            dispatchNestedFling(velocityX, velocityY, canFling);
+        } else {
+            Log.e(TAG, "bbc flingWithNestedDispatch false");
         }
     }
+
     private void abortScroller() {
         Log.e(TAG, "abortAnimation ");
         mScroller.abortAnimation();
@@ -696,7 +714,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
             } else {
                 if (target == null) {
                     target = view;
-                    if(target instanceof ScrollingView|| target instanceof AbsListView||target instanceof ScrollView){
+                    if (target instanceof ScrollingView || target instanceof AbsListView || target instanceof ScrollView) {
                         mTargetCanScroll = true;
                     }
                 } else {
@@ -902,13 +920,13 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                     overScrollByCompat(x - oldX, y - oldY, oldX, oldY, 0, getScrollContentRange(), 0, 0, maxTop, maxBottom, false);
                 } else {
                     super.scrollTo(x, y);
-                    if(mTargetCanScroll&& mFooterSpringFixed &&mInLoadMoreDismissing){
+                    if (mTargetCanScroll && mFooterSpringFixed && mInLoadMoreDismissing) {
                         int dy = oldY - y;
-                        mTarget.scrollBy(0,dy);
+                        mTarget.scrollBy(0, dy);
                     }
                 }
                 processRefresh();
-            }else{
+            } else {
                 /*由于scroller的计算可能引起(oldX=x&&oldY=y)的情况发生，这样会导致动画未完成或无法开始，所以此处加上invalidate.
                 * 并且这样也解决了滚动不能到头有时留有一两个像素的问题。（不知所以?）*/
                 invalidate();
@@ -984,7 +1002,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
         Log.e(TAG, "onNestedPreScroll " + dy);
-        dispatchNestedPreScroll(dx, dy, consumed, null);
+        dispatchNestedPreScroll(dx, dy, consumed, mScrollOffset);
         dy -= consumed[1];
         if (dy > 0) {//上拉
             if (isHeaderInScreen()) {
@@ -1004,7 +1022,6 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
                 processRefreshFooter();
             }
         }
-
     }
 
 
@@ -1042,7 +1059,6 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
-        Log.e(TAG, "onNestedPreFling");
         return dispatchNestedPreFling(velocityX,velocityY);
 //        return flingWithNestedDispatch((int)velocityX,(int)velocityX);
 //        return super.onNestedPreFling(target, velocityX, velocityY);
@@ -1051,6 +1067,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     @Override
     public boolean onNestedFling(View target, float velocityX, float velocityY, boolean consumed) {
         Log.e(TAG, "onNestedFling " + consumed);
+        dispatchNestedFling(velocityX,velocityY,consumed);
         if (!consumed) {
             flingOrSpringBack((int) velocityY);
             return true;
@@ -1063,8 +1080,8 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
         Log.e(TAG, "onStopNestedScroll");
         mParentHelper.onStopNestedScroll(child);
         stopNestedScroll();
-        mScroller.computeScrollOffset();
         confirmRefresh();
+        mScroller.computeScrollOffset();
         if (mScroller.isFinished()) {
             Log.e(TAG, "onStopNestedScroll start");
             springBack(getScrollX(), getScrollY());
@@ -1091,6 +1108,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 
     @Override
     public void stopNestedScroll() {
+        Logger.d(TAG_NESTED, "stopNestedScroll");
         mChildHelper.stopNestedScroll();
     }
 
@@ -1111,6 +1129,7 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
 
     @Override
     public boolean dispatchNestedPreFling(float velocityX, float velocityY) {
+        Log.e(TAG, "dispatchNestedPreFling " + velocityY);
         return mChildHelper.dispatchNestedPreFling(velocityX, velocityY);
     }
 
@@ -1120,12 +1139,4 @@ public class EasyRefreshLayout extends ViewGroup implements NestedScrollingParen
     }
     //</editor-fold>
 
-    //<editor-fold desc="Log">
-    private static final boolean LOG_MOVE = true;
-
-    private void logError(String methodName, String errorMsg) {
-        if (LOG_MOVE)
-            Log.e("EasyRefreshLayout", methodName + " : " + errorMsg);
-    }
-    //</editor-fold>
 }
